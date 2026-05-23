@@ -19,16 +19,16 @@ SIZE = 88            # 2× the real 44 px icon — crisp at "right-float" size i
 ALPHA_THRESHOLD = 64 # pixels with alpha > this → ring colour; rest → transparent
 
 
-def make_frame(n: int, ring_rgb: tuple) -> Image.Image:
-    """Return a palette-mode (P) frame with index 0 = transparent, index 1 = ring colour."""
+def make_frame(n: int, ring_rgb: tuple, bg_rgb: tuple) -> Image.Image:
+    """Return a palette-mode (P) frame with index 0 = background, index 1 = ring colour."""
     icon = Image.open(SRC / f'r{n:03d}.png').convert('RGBA')
     icon = icon.resize((SIZE, SIZE), Image.LANCZOS)
     _, _, _, alpha = icon.split()
 
-    # Build a 2-slot palette: slot 0 = background (transparent), slot 1 = ring colour
+    # Build a 2-slot palette: slot 0 = background, slot 1 = ring colour
     palette = [0] * (256 * 3)
-    palette[0], palette[1], palette[2] = 0, 0, 0           # slot 0: transparent
-    palette[3], palette[4], palette[5] = ring_rgb           # slot 1: ring
+    palette[0], palette[1], palette[2] = bg_rgb            # slot 0: background
+    palette[3], palette[4], palette[5] = ring_rgb          # slot 1: ring
 
     pal_img = Image.new('P', (SIZE, SIZE), 0)   # start fully transparent
     pal_img.putpalette(palette)
@@ -43,34 +43,36 @@ def make_frame(n: int, ring_rgb: tuple) -> Image.Image:
     return pal_img
 
 
-def build(path: Path, ring_rgb: tuple) -> None:
+def build(path: Path, ring_rgb: tuple, bg_rgb: tuple, transparent: bool = False) -> None:
     frames, ms = [], []
     for n in range(0, 101, 2):        # 0 → 100 % in steps of 2
-        frames.append(make_frame(n, ring_rgb))
+        frames.append(make_frame(n, ring_rgb, bg_rgb))
         ms.append(50)
     for _ in range(12):               # hold at 100 %
         frames.append(frames[-1])
         ms.append(60)
-    zero = make_frame(0, ring_rgb)
+    zero = make_frame(0, ring_rgb, bg_rgb)
     frames.append(zero); ms.append(80)   # instant reset
     for _ in range(6):                # hold at 0 %
         frames.append(zero)
         ms.append(60)
 
-    frames[0].save(
-        path,
+    save_kwargs = dict(
         save_all=True,
         append_images=frames[1:],
         loop=0,
         duration=ms,
         optimize=False,
-        transparency=0,   # palette index 0 is the transparent colour
-        disposal=2,        # restore to transparent between frames
+        disposal=2,
     )
+    if transparent:
+        save_kwargs['transparency'] = 0   # palette index 0 is the transparent colour
+
+    frames[0].save(path, **save_kwargs)
     print(f'{path.name}: {len(frames)} frames  {path.stat().st_size // 1024} KB')
 
 
 OUT.mkdir(exist_ok=True)
-build(OUT / 'ring-dark.gif',  (255, 255, 255))   # white ring → GitHub dark mode
-build(OUT / 'ring-light.gif', (28,  28,  30))    # dark ring  → GitHub light mode
+build(OUT / 'ring-dark.gif',  ring_rgb=(240, 215, 180), bg_rgb=(13, 17, 23),  transparent=False)  # beige ring on #0d1117
+build(OUT / 'ring-light.gif', ring_rgb=(28,  28,  30),  bg_rgb=(0,  0,  0),   transparent=True)   # dark ring, transparent bg
 print('done')
