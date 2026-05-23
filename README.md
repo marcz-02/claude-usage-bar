@@ -106,6 +106,7 @@ rm ~/Library/LaunchAgents/com.claudetokenring.app.plist
 - Requires Claude Desktop to be running for live data (tiers 1 and 2)
 - On cold start without live API access the display may underestimate usage until Claude Desktop is opened
 - macOS only
+- **Dark Reader browser extension**: the ring GIF uses a transparent background to avoid a coloured-box artefact, but Dark Reader may still invert the ring colour. For the cleanest result, whitelist `github.com` in Dark Reader → *Sites* → *Add github.com*.
 
 ## License
 
