@@ -4,6 +4,8 @@ macOS menu bar app that shows your [Claude.ai](https://claude.ai) token usage as
 
 The ring fills from empty (0 %) to full (100 %) as you consume your 5-hour quota. A usage chart in the menu lets you see how fast you're burning through it.
 
+![claude-usage-bar menu](screenshots/menu.png)
+
 ## Requirements
 
 - macOS 12+
