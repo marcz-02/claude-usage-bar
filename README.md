@@ -5,12 +5,16 @@ macOS menu bar app that shows your [Claude.ai](https://claude.ai) token usage as
 The ring fills from empty (0 %) to full (100 %) as you consume your 5-hour quota. A usage chart in the menu lets you see how fast you're burning through it.
 
 <p align="center">
-  <img src="screenshots/ring.gif" width="120" alt="ring animation" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)"  srcset="screenshots/ring-dark.gif">
+    <source media="(prefers-color-scheme: light)" srcset="screenshots/ring-light.gif">
+    <img src="screenshots/ring-light.gif" width="160" alt="ring filling up animation">
+  </picture>
+  <br>
+  <a href="https://marcz-02.github.io/claude-usage-bar/">▶ Live ring demo</a>
 </p>
 
 ![claude-usage-bar menu](screenshots/menu.png)
-
-> **[▶ Live ring demo](https://marcz-02.github.io/claude-usage-bar/)**
 
 ## Requirements
 
