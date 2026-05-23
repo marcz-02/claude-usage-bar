@@ -9,3 +9,4 @@ claude_ring_icons/
 # User state & config — never commit
 .claude_token_ring_*.json
 .claude_token_ring_*.jsonl
+CLAUDE.md
