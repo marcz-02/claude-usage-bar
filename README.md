@@ -1,18 +1,16 @@
-# Claude Token Ring
+<picture>
+  <source media="(prefers-color-scheme: dark)"  srcset="screenshots/ring-dark.gif">
+  <source media="(prefers-color-scheme: light)" srcset="screenshots/ring-light.gif">
+  <img align="right" src="screenshots/ring-light.gif" width="88" alt="ring animation">
+</picture>
+
+# claude-usage-bar
 
 macOS menu bar app that shows your [Claude.ai](https://claude.ai) token usage as a brushstroke ring icon — updated live from Claude Desktop, no separate API key needed.
 
 The ring fills from empty (0 %) to full (100 %) as you consume your 5-hour quota. A usage chart in the menu lets you see how fast you're burning through it.
 
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)"  srcset="screenshots/ring-dark.gif">
-    <source media="(prefers-color-scheme: light)" srcset="screenshots/ring-light.gif">
-    <img src="screenshots/ring-light.gif" width="420" alt="ring filling up in macOS menu bar">
-  </picture>
-  <br>
-  <a href="https://marcz-02.github.io/claude-usage-bar/">▶ Live ring demo</a>
-</p>
+[▶ Live ring demo](https://marcz-02.github.io/claude-usage-bar/)
 
 ![claude-usage-bar menu](screenshots/menu.png)
 
