@@ -33,6 +33,24 @@ The script installs Python dependencies and registers a LaunchAgent so the app s
 | Rate | Current consumption rate, e.g. `+18 %/h` |
 | Full in | Projected time until 100 %, e.g. `~2h 15m` |
 | Advanced ▸ | Chart of actual usage over the current 5-hour session |
+| Export usage data… | Saves a CSV of all recorded samples to `~/Downloads` |
+
+## Plan compatibility
+
+Works with any Claude plan — the ring always reflects Claude's own utilisation percentage regardless of your quota size. The live API (tiers 1 and 2) is fully plan-agnostic. The fallback heuristic (tier 3) defaults to a 197 k-token limit, which may be inaccurate on plans with a different quota, but tier 3 is only active when Claude Desktop is not running.
+
+## Export format
+
+`Export usage data…` saves `~/Downloads/claude-usage-YYYYMMDD-HHMMSS.csv`:
+
+```csv
+timestamp,datetime_utc,utilization_pct
+1716000000,2024-05-18T10:00:00Z,13.50
+1716000030,2024-05-18T10:00:30Z,14.20
+…
+```
+
+Up to 240 samples (one every 30 s) — roughly the last 2 hours of active usage.
 
 ## How data is read
 

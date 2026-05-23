@@ -762,6 +762,7 @@ class ClaudeRingApp(rumps.App):
             None,
             toggle_item,
             advanced,
+            rumps.MenuItem("Export usage data…",     callback=self._export_data),
             None,
             rumps.MenuItem("Quit",                   callback=rumps.quit_application),
         ]
@@ -998,6 +999,24 @@ class ClaudeRingApp(rumps.App):
             self._chart_view.setNeedsDisplay_(True)
 
     # ── Callbacks ─────────────────────────────────────────────────────────────
+
+    def _export_data(self, _sender):
+        """Export the usage log as a CSV file to ~/Downloads."""
+        samples = _read_usage_log()
+        if not samples:
+            rumps.notification("claude-usage-bar", "", "No data recorded yet.")
+            return
+        ts_str  = datetime.now().strftime("%Y%m%d-%H%M%S")
+        path    = Path.home() / "Downloads" / f"claude-usage-{ts_str}.csv"
+        rows    = ["timestamp,datetime_utc,utilization_pct"]
+        for s in samples:
+            dt = datetime.fromtimestamp(s["ts"], tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            rows.append(f"{s['ts']},{dt},{s['util']:.2f}")
+        try:
+            path.write_text("\n".join(rows) + "\n")
+            rumps.notification("claude-usage-bar", "Export saved", str(path))
+        except Exception as exc:
+            rumps.notification("claude-usage-bar", "Export failed", str(exc))
 
     def _tick(self, _sender):
         # rumps.Timer fires on main thread → safe to update UI here.
