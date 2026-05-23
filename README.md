@@ -8,7 +8,7 @@ The ring fills from empty (0 %) to full (100 %) as you consume your 5-hour quota
   <picture>
     <source media="(prefers-color-scheme: dark)"  srcset="screenshots/ring-dark.gif">
     <source media="(prefers-color-scheme: light)" srcset="screenshots/ring-light.gif">
-    <img src="screenshots/ring-light.gif" width="160" alt="ring filling up animation">
+    <img src="screenshots/ring-light.gif" width="420" alt="ring filling up in macOS menu bar">
   </picture>
   <br>
   <a href="https://marcz-02.github.io/claude-usage-bar/">▶ Live ring demo</a>
