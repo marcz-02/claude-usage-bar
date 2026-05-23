@@ -63,7 +63,7 @@ KEYCHAIN_ACCOUNT = "Claude Key"
 
 USAGE_LOG        = Path.home() / ".claude_token_ring_usage_log.jsonl"
 RATE_WINDOW_SEC  = 30 * 60        # consumption rate computed over the last 30 min
-RATE_LOG_MAX     = 240            # ~2h of history at 30s ticks
+RATE_LOG_MAX     = 17280          # ~6 months of history at 30s ticks (≈ 1.4 MB)
 RATE_RESET_DROP  = 15.0           # a utilization drop > this % marks a 5h reset
 RATE_MIN_SPAN    = 180            # need >= 3 min of samples for a meaningful rate
 SESSION_STATE    = Path.home() / ".claude_token_ring_session.json"

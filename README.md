@@ -39,6 +39,25 @@ The script installs Python dependencies and registers a LaunchAgent so the app s
 
 Works with any Claude plan — the ring always reflects Claude's own utilisation percentage regardless of your quota size. The live API (tiers 1 and 2) is fully plan-agnostic. The fallback heuristic (tier 3) defaults to a 197 k-token limit, which may be inaccurate on plans with a different quota, but tier 3 is only active when Claude Desktop is not running.
 
+## Live data access
+
+The app continuously writes every sample to `~/.claude_token_ring_usage_log.jsonl` (one JSON object per line, updated every 30 s, up to ~6 months of history). You can read it directly at any time — no export step needed:
+
+```python
+import pandas as pd
+import json
+from pathlib import Path
+
+lines = Path("~/.claude_token_ring_usage_log.jsonl").expanduser().read_text().splitlines()
+df = pd.DataFrame([json.loads(l) for l in lines if l])
+df["datetime"] = pd.to_datetime(df["ts"], unit="s", utc=True)
+df = df.set_index("datetime").rename(columns={"util": "utilization_pct"})
+
+df.plot(title="Claude token utilisation over time")
+```
+
+Each row: `ts` (Unix timestamp) · `util` (0–100 %).
+
 ## Export format
 
 `Export usage data…` saves `~/Downloads/claude-usage-YYYYMMDD-HHMMSS.csv`:
