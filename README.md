@@ -91,14 +91,14 @@ Three tiers, freshest first — the **Source** line in the menu tells you which 
 
 ```bash
 # Restart
-launchctl stop com.claudetokenring.app && launchctl start com.claudetokenring.app
+launchctl stop com.marcz.claude-token-ring && launchctl start com.marcz.claude-token-ring
 
 # Logs
 tail -f /tmp/claude-token-ring.log
 
 # Uninstall
-launchctl unload ~/Library/LaunchAgents/com.claudetokenring.app.plist
-rm ~/Library/LaunchAgents/com.claudetokenring.app.plist
+launchctl unload ~/Library/LaunchAgents/com.marcz.claude-token-ring.plist
+rm ~/Library/LaunchAgents/com.marcz.claude-token-ring.plist
 ```
 
 ## Known limitations
