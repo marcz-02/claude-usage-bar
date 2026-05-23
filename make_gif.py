@@ -73,6 +73,8 @@ def build(path: Path, ring_rgb: tuple, bg_rgb: tuple, transparent: bool = False)
 
 
 OUT.mkdir(exist_ok=True)
-build(OUT / 'ring-dark.gif',  ring_rgb=(240, 215, 180), bg_rgb=(13, 17, 23),  transparent=False)  # beige ring on #0d1117
-build(OUT / 'ring-light.gif', ring_rgb=(28,  28,  30),  bg_rgb=(0,  0,  0),   transparent=True)   # dark ring, transparent bg
+# ring-dark: beige ring, transparent bg — shown when OS is in dark mode
+build(OUT / 'ring-dark.gif',  ring_rgb=(240, 215, 180), bg_rgb=(0, 0, 0), transparent=True)
+# ring-light: warm amber — visible on BOTH white and dark GitHub backgrounds (fallback if dark mode isn't detected)
+build(OUT / 'ring-light.gif', ring_rgb=(200, 150, 80),  bg_rgb=(0, 0, 0), transparent=True)
 print('done')
