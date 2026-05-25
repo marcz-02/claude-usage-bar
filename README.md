@@ -1,9 +1,6 @@
 # Claude Token Ring
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="screenshots/ring-dark.gif">
-  <img align="right" src="screenshots/ring-light.gif" width="88" alt="ring animation">
-</picture>
+<img align="right" src="screenshots/ring-dark.gif" width="88" alt="ring animation">
 
 macOS menu bar app that shows your [Claude.ai](https://claude.ai) token usage as a brushstroke ring icon — updated live from Claude Desktop, no separate API key needed.
 

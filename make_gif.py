@@ -72,9 +72,8 @@ def build(path: Path, ring_rgb: tuple, bg_rgb: tuple, transparent: bool = False)
     print(f'{path.name}: {len(frames)} frames  {path.stat().st_size // 1024} KB')
 
 
+ORANGE = (220, 100, 45)   # Claude-brand orange — contrast 3.56 vs white, 5.32 vs dark
 OUT.mkdir(exist_ok=True)
-# ring-dark: beige ring, transparent bg — shown when OS is in dark mode
-build(OUT / 'ring-dark.gif',  ring_rgb=(240, 215, 180), bg_rgb=(0, 0, 0), transparent=True)
-# ring-light: warm amber — visible on BOTH white and dark GitHub backgrounds (fallback if dark mode isn't detected)
-build(OUT / 'ring-light.gif', ring_rgb=(200, 150, 80),  bg_rgb=(0, 0, 0), transparent=True)
+build(OUT / 'ring-dark.gif',  ring_rgb=ORANGE, bg_rgb=(0, 0, 0), transparent=True)
+build(OUT / 'ring-light.gif', ring_rgb=ORANGE, bg_rgb=(0, 0, 0), transparent=True)
 print('done')
