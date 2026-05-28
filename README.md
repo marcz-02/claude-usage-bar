@@ -26,10 +26,7 @@ The ring appears automatically when Claude Desktop is open and disappears when y
 Paste this into Terminal — no GitHub account or Git needed:
 
 ```bash
-curl -fsSL https://github.com/marcz-02/claude-usage-bar/archive/refs/heads/main.zip -o /tmp/ctr.zip \
-  && unzip -q -o /tmp/ctr.zip -d /tmp/ \
-  && rsync -a /tmp/claude-usage-bar-main/ ~/ClaudeTokenRing/ \
-  && bash ~/ClaudeTokenRing/install.sh
+curl -fsSL https://raw.githubusercontent.com/marcz-02/claude-usage-bar/main/setup.sh | bash
 ```
 
 The script installs Python dependencies and registers a LaunchAgent so the ring starts automatically whenever Claude Desktop is open.
@@ -37,8 +34,17 @@ The script installs Python dependencies and registers a LaunchAgent so the ring 
 **First run:** macOS will show a Keychain prompt for **"Claude Safe Storage"** — click **Always Allow**. This is needed to read Claude Desktop's session cookie for direct usage lookups.
 
 <details>
-<summary>Install via Git (for developers)</summary>
+<summary>Alternative install options</summary>
 
+Download manually (if you prefer not to pipe to bash):
+```bash
+curl -fsSL https://github.com/marcz-02/claude-usage-bar/archive/refs/heads/main.zip -o /tmp/ctr.zip \
+  && unzip -q -o /tmp/ctr.zip -d /tmp/ \
+  && rsync -a /tmp/claude-usage-bar-main/ ~/ClaudeTokenRing/ \
+  && bash ~/ClaudeTokenRing/install.sh
+```
+
+Install via Git:
 ```bash
 git clone https://github.com/marcz-02/claude-usage-bar.git ~/ClaudeTokenRing
 bash ~/ClaudeTokenRing/install.sh
