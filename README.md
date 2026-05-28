@@ -6,6 +6,8 @@ macOS menu bar app that shows your [Claude.ai](https://claude.ai) token usage as
 
 The ring fills from empty (0 %) to full (100 %) as you consume your 5-hour quota. A usage chart in the menu lets you see how fast you're burning through it.
 
+The ring appears automatically when Claude Desktop is open and disappears when you quit it.
+
 [▶ Live ring demo](https://marcz-02.github.io/claude-usage-bar/)
 
 ![claude-usage-bar menu](screenshots/menu.png)
@@ -14,19 +16,34 @@ The ring fills from empty (0 %) to full (100 %) as you consume your 5-hour quota
 
 - macOS 12+
 - [Claude Desktop](https://claude.ai/download) installed and logged in
-- Python 3.9 from Xcode Command Line Tools (`xcode-select --install`)
+- Python 3.9 from Xcode Command Line Tools — if not installed yet, run:
+  ```bash
+  xcode-select --install
+  ```
 
 ## Install
 
+Paste this into Terminal — no GitHub account or Git needed:
+
 ```bash
-git clone https://github.com/YOUR_USERNAME/ClaudeTokenRing.git
-cd ClaudeTokenRing
-./install.sh
+curl -fsSL https://github.com/marcz-02/claude-usage-bar/archive/refs/heads/main.zip -o /tmp/ctr.zip \
+  && unzip -q -o /tmp/ctr.zip -d /tmp/ \
+  && rsync -a /tmp/claude-usage-bar-main/ ~/ClaudeTokenRing/ \
+  && bash ~/ClaudeTokenRing/install.sh
 ```
 
-The script installs Python dependencies and registers a LaunchAgent so the app starts automatically at login.
+The script installs Python dependencies and registers a LaunchAgent so the ring starts automatically whenever Claude Desktop is open.
 
 **First run:** macOS will show a Keychain prompt for **"Claude Safe Storage"** — click **Always Allow**. This is needed to read Claude Desktop's session cookie for direct usage lookups.
+
+<details>
+<summary>Install via Git (for developers)</summary>
+
+```bash
+git clone https://github.com/marcz-02/claude-usage-bar.git ~/ClaudeTokenRing
+bash ~/ClaudeTokenRing/install.sh
+```
+</details>
 
 ## What it shows
 
@@ -87,7 +104,8 @@ Three tiers, freshest first — the **Source** line in the menu tells you which 
 
 ```bash
 # Restart
-launchctl stop com.marcz.claude-token-ring && launchctl start com.marcz.claude-token-ring
+launchctl unload ~/Library/LaunchAgents/com.marcz.claude-token-ring.plist \
+  && launchctl load ~/Library/LaunchAgents/com.marcz.claude-token-ring.plist
 
 # Logs
 tail -f /tmp/claude-token-ring.log
@@ -95,13 +113,14 @@ tail -f /tmp/claude-token-ring.log
 # Uninstall
 launchctl unload ~/Library/LaunchAgents/com.marcz.claude-token-ring.plist
 rm ~/Library/LaunchAgents/com.marcz.claude-token-ring.plist
+rm -rf ~/ClaudeTokenRing
 ```
 
 ## Known limitations
 
-- Requires Claude Desktop to be running for live data (tiers 1 and 2)
-- On cold start without live API access the display may underestimate usage until Claude Desktop is opened
+- Requires Claude Desktop to be open for live data (tiers 1 and 2)
 - macOS only
+- Closing the Claude window (red ✕) does not quit the app — the ring stays active until you fully quit Claude Desktop (Cmd+Q or Dock → Quit)
 
 ## License
 
