@@ -9,6 +9,7 @@ Session-anchor model:
   Claude's real 5h window expires (next token increase after >=5h marks a new
   session). See plan file for full edge-case behaviour.
 """
+import fcntl
 import glob
 import hashlib
 import json
@@ -229,6 +230,18 @@ _org_uuid_cached      = None
 _safe_storage_key     = None
 _cookies_cache        = None
 _cookies_cache_mtime  = 0.0
+_LOCK_FD              = None   # held open for the lifetime of the process
+
+
+def _acquire_single_instance() -> bool:
+    """Return True if this is the only running instance (exclusive fcntl lock)."""
+    global _LOCK_FD
+    try:
+        _LOCK_FD = open("/tmp/claude-token-ring.lock", "w")
+        fcntl.flock(_LOCK_FD, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return True
+    except OSError:
+        return False   # another instance already holds the lock
 
 
 def _get_org_uuid():
@@ -1141,6 +1154,8 @@ class ClaudeRingApp(rumps.App):
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
+    if not _acquire_single_instance():
+        os._exit(0)   # another instance is already running
     if not _is_claude_running():
-        os._exit(0)   # force-exit before NSApplication event loop starts
+        os._exit(0)   # Claude Desktop is not open
     ClaudeRingApp().run()

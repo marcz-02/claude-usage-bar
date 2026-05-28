@@ -30,6 +30,18 @@ sed -e "s|__APP_DIR__|$DIR|g" -e "s|__HOME__|$HOME|g" "$DIR/launchagent.plist.te
 
 # Unload any existing instance before loading the new one
 launchctl unload "$PLIST" 2>/dev/null || true
+
+echo ""
+echo "============================================="
+echo "  macOS security prompt is coming up next."
+echo ""
+echo "  >>> Click 'Always Allow' <<<"
+echo ""
+echo "  (Not just 'Allow' — that asks again every"
+echo "  time. 'Always Allow' = done forever.)"
+echo "============================================="
+echo ""
+
 launchctl load "$PLIST"
 
 echo ""
