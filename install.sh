@@ -26,7 +26,7 @@ echo "Installing Python packages..."
 
 # ── Install LaunchAgent ────────────────────────────────────────────────────────
 echo "Setting up LaunchAgent..."
-sed "s|__APP_DIR__|$DIR|g" "$DIR/launchagent.plist.template" > "$PLIST"
+sed -e "s|__APP_DIR__|$DIR|g" -e "s|__HOME__|$HOME|g" "$DIR/launchagent.plist.template" > "$PLIST"
 
 # Unload any existing instance before loading the new one
 launchctl unload "$PLIST" 2>/dev/null || true

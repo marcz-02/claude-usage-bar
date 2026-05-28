@@ -12,10 +12,12 @@ Session-anchor model:
 import glob
 import hashlib
 import json
+import os
 import re
 import shutil
 import sqlite3
 import subprocess
+import sys
 import threading
 import time
 from datetime import datetime, timezone
@@ -83,6 +85,16 @@ CONFIDENCE_LABEL = {
 DEFAULTS = {"limit": DEFAULT_LIMIT, "show_pct": True}
 
 # ── Icon cache (pre-rendered 0..100%) ─────────────────────────────────────────
+
+def _is_claude_running() -> bool:
+    try:
+        return subprocess.run(
+            ["pgrep", "-x", "Claude"],
+            capture_output=True, timeout=2
+        ).returncode == 0
+    except Exception:
+        return True
+
 
 def _icon_path(pct_int: int) -> str:
     return str(ICON_DIR / f"r{pct_int:03d}.png")
@@ -885,6 +897,13 @@ class ClaudeRingApp(rumps.App):
     # ── Fetch & update ────────────────────────────────────────────────────────
 
     def _fetch(self):
+        # Quit cleanly when Claude Desktop is no longer running.
+        # LaunchAgent (KeepAlive/SuccessfulExit:false) will not restart us on a
+        # clean exit — and WatchPaths will re-launch us when Claude opens again.
+        if not _is_claude_running():
+            rumps.quit_application(None)
+            return
+
         now        = time.time()
         tokens_now = _read_tokens_now()
         state      = _update_session(now, tokens_now, _load_state())
@@ -1122,4 +1141,6 @@ class ClaudeRingApp(rumps.App):
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
+    if not _is_claude_running():
+        os._exit(0)   # force-exit before NSApplication event loop starts
     ClaudeRingApp().run()
