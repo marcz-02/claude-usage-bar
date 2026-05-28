@@ -100,6 +100,20 @@ Three tiers, freshest first — the **Source** line in the menu tells you which 
 2. **Direct `/usage` API** — uses your Desktop session cookie; kicks in when the cache is stale (>60 s old)
 3. **Fallback heuristic** — local token counter + session-anchor model; used only when both live paths fail (less accurate on cold start)
 
+## Uninstall
+
+```bash
+bash ~/ClaudeTokenRing/uninstall.sh
+```
+
+This removes the LaunchAgent, app files, and all config/state data.
+
+If you already deleted the `~/ClaudeTokenRing` folder, run this instead:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/marcz-02/claude-usage-bar/main/uninstall.sh | bash
+```
+
 ## Manage the app
 
 ```bash
@@ -109,11 +123,6 @@ launchctl unload ~/Library/LaunchAgents/com.marcz.claude-token-ring.plist \
 
 # Logs
 tail -f /tmp/claude-token-ring.log
-
-# Uninstall
-launchctl unload ~/Library/LaunchAgents/com.marcz.claude-token-ring.plist
-rm ~/Library/LaunchAgents/com.marcz.claude-token-ring.plist
-rm -rf ~/ClaudeTokenRing
 ```
 
 ## Known limitations
