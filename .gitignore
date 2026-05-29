@@ -10,5 +10,3 @@ claude_ring_icons/
 .claude_token_ring_*.json
 .claude_token_ring_*.jsonl
 
-# Claude Code project instructions (local dev only)
-CLAUDE.md
