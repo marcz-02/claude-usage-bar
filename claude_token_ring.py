@@ -266,11 +266,31 @@ def _get_org_uuid():
     return None
 
 
+_KEY_CACHE_PATH = Path("/tmp/claude_ring_ssk")
+
 def _get_safe_storage_key():
-    """Derive AES key from macOS Keychain password. Cached after first read."""
+    """Derive AES key from macOS Keychain password.
+
+    Cached in RAM after first read. Also persisted to /tmp/claude_ring_ssk so
+    that process restarts (triggered by LaunchAgent WatchPaths) do not cause a
+    new Keychain prompt — the derived key is read from disk instead.
+
+    /tmp is user-private and cleared on reboot, so the window of exposure is
+    short. The value stored is already the derived PBKDF2 key, not the raw
+    Keychain password.
+    """
     global _safe_storage_key
     if _safe_storage_key is not None:
         return _safe_storage_key
+    # Try disk cache first — survives process restarts within the same login session.
+    try:
+        _safe_storage_key = _KEY_CACHE_PATH.read_bytes()
+        if len(_safe_storage_key) == 16:
+            return _safe_storage_key
+        _safe_storage_key = None  # corrupt/wrong length, fall through
+    except Exception:
+        pass
+    # Fall back to Keychain (triggers macOS prompt on first use).
     try:
         pw = subprocess.check_output(
             ["security", "find-generic-password",
@@ -280,6 +300,12 @@ def _get_safe_storage_key():
     except Exception:
         return None
     _safe_storage_key = hashlib.pbkdf2_hmac("sha1", pw.encode(), b"saltysalt", 1003, 16)
+    # Persist to disk so future process restarts skip the Keychain prompt.
+    try:
+        _KEY_CACHE_PATH.write_bytes(_safe_storage_key)
+        _KEY_CACHE_PATH.chmod(0o600)  # owner-read/write only
+    except Exception:
+        pass
     return _safe_storage_key
 
 
