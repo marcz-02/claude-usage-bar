@@ -266,7 +266,7 @@ def _get_org_uuid():
     return None
 
 
-_KEY_CACHE_PATH = Path("/tmp/claude_ring_ssk")
+_KEY_CACHE_PATH = Path.home() / ".claude_token_ring_ssk"
 
 def _get_safe_storage_key():
     """Derive AES key from macOS Keychain password.
