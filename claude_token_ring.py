@@ -59,8 +59,8 @@ COOKIES_DB       = Path.home() / "Library" / "Application Support" / "Claude" / 
 USAGE_URL_RE     = re.compile(rb"/api/organizations/[a-f0-9-]+/usage[^/_]")
 ORG_UUID_RE      = re.compile(rb"/api/organizations/([a-f0-9-]{36})/")
 ZSTD_MAGIC       = b"\x28\xb5\x2f\xfd"
-LIVE_MAX_AGE     = 10 * 60        # treat live cache as fresh if <10min old
-CACHE_FRESH_SEC  = 60             # cache is "fresh enough" — skip API call
+CACHE_FRESH_SEC  = 120            # skip API if cache < 2 min old
+API_WINDOW_SEC   = 5 * 60         # skip API if cache > 5 min old (fully idle)
 KEYCHAIN_SERVICE = "Claude Safe Storage"
 KEYCHAIN_ACCOUNT = "Claude Key"
 
@@ -953,14 +953,15 @@ class ClaudeRingApp(rumps.App):
         live = _read_live_usage()
         cache_age = (now - live["cache_mtime"]) if live else None
 
-        # 2. Cache stale (or missing)? Make our own API call.
-        if live is None or cache_age > CACHE_FRESH_SEC:
+        # 2. Cache in the 2–5 min window? Make an API call — the shared account
+        #    partner may be active even though our local cache is stale.
+        #    Outside this window: either fresh enough (< 2 min) or fully idle
+        #    (> 5 min) — in both cases skip the network call entirely.
+        if live is None or CACHE_FRESH_SEC < cache_age <= API_WINDOW_SEC:
             api_live = _fetch_usage_via_api()
             if api_live is not None:
                 live = api_live
-            elif live is not None and cache_age > LIVE_MAX_AGE:
-                # Cache too old AND API failed → don't use cache at all
-                live = None
+        # cache_age > API_WINDOW_SEC → fully idle, keep last known value as-is
 
         # Log the real utilization for rate tracking — only genuine live values,
         # never fallback estimates (they would distort the rate).
