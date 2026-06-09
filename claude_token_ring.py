@@ -49,6 +49,13 @@ except Exception:
 
 from ring_renderer import render_ring
 
+# ── Logging ───────────────────────────────────────────────────────────────────
+
+def _log(msg: str):
+    """Timestamped log to stdout (captured by LaunchAgent → /tmp/claude-token-ring*.log)."""
+    ts = datetime.now().strftime("%H:%M:%S")
+    print(f"[{ts}] {msg}", flush=True)
+
 # ── Namespace (supports parallel beta installs) ───────────────────────────────
 # The namespace is derived from the directory name this script lives in.
 # Production: ~/ClaudeTokenRing   → namespace ""     (no suffix)
@@ -284,41 +291,47 @@ _KEY_CACHE_PATH = Path.home() / f".claude_token_ring{_NS_SUFFIX}_ssk"
 def _get_safe_storage_key():
     """Derive AES key from macOS Keychain password.
 
-    Cached in RAM after first read. Also persisted to /tmp/claude_ring_ssk so
+    Cached in RAM after first read. Also persisted to _KEY_CACHE_PATH so
     that process restarts (triggered by LaunchAgent WatchPaths) do not cause a
     new Keychain prompt — the derived key is read from disk instead.
 
-    /tmp is user-private and cleared on reboot, so the window of exposure is
-    short. The value stored is already the derived PBKDF2 key, not the raw
-    Keychain password.
+    The file is owner-read/write only (0o600). The value stored is the derived
+    PBKDF2 key, not the raw Keychain password.
     """
     global _safe_storage_key
     if _safe_storage_key is not None:
+        _log("[keychain] RAM cache hit — no prompt needed")
         return _safe_storage_key
-    # Try disk cache first — survives process restarts within the same login session.
+    # Try disk cache first — survives process restarts.
     try:
         _safe_storage_key = _KEY_CACHE_PATH.read_bytes()
         if len(_safe_storage_key) == 16:
+            _log(f"[keychain] disk cache hit ({_KEY_CACHE_PATH}) — no prompt needed")
             return _safe_storage_key
         _safe_storage_key = None  # corrupt/wrong length, fall through
+        _log(f"[keychain] disk cache corrupt, falling back to Keychain")
     except Exception:
-        pass
+        _log(f"[keychain] no disk cache at {_KEY_CACHE_PATH} — will prompt Keychain")
     # Fall back to Keychain (triggers macOS prompt on first use).
+    _log("[keychain] calling security find-generic-password — macOS prompt may appear")
     try:
         pw = subprocess.check_output(
             ["security", "find-generic-password",
              "-s", KEYCHAIN_SERVICE, "-a", KEYCHAIN_ACCOUNT, "-w"],
             stderr=subprocess.DEVNULL, timeout=5,
         ).decode().strip()
-    except Exception:
+    except Exception as e:
+        _log(f"[keychain] FAILED — security command error: {e}")
         return None
     _safe_storage_key = hashlib.pbkdf2_hmac("sha1", pw.encode(), b"saltysalt", 1003, 16)
+    _log("[keychain] SUCCESS — key derived, persisting to disk cache")
     # Persist to disk so future process restarts skip the Keychain prompt.
     try:
         _KEY_CACHE_PATH.write_bytes(_safe_storage_key)
-        _KEY_CACHE_PATH.chmod(0o600)  # owner-read/write only
-    except Exception:
-        pass
+        _KEY_CACHE_PATH.chmod(0o600)
+        _log(f"[keychain] disk cache written to {_KEY_CACHE_PATH}")
+    except Exception as e:
+        _log(f"[keychain] WARNING: could not write disk cache: {e}")
     return _safe_storage_key
 
 
