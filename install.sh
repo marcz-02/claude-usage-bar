@@ -6,7 +6,19 @@ set -e
 
 PYTHON=/Library/Developer/CommandLineTools/usr/bin/python3
 DIR="$(cd "$(dirname "$0")" && pwd)"
-LABEL="com.claudetokenring.app"
+DIRNAME="$(basename "$DIR")"
+
+# Derive namespace from directory name — supports parallel beta installs.
+# ~/ClaudeTokenRing      → label com.marcz.claude-token-ring
+# ~/ClaudeTokenRingBeta  → label com.marcz.claude-token-ring-beta
+if [ "$DIRNAME" = "ClaudeTokenRing" ]; then
+  NS=""
+else
+  NS=$(echo "$DIRNAME" | sed 's/ClaudeTokenRing//' | tr '[:upper:]' '[:lower:]')
+fi
+NS_LABEL="${NS:+-$NS}"   # "" or "-beta"
+
+LABEL="com.marcz.claude-token-ring${NS_LABEL}"
 PLIST=~/Library/LaunchAgents/${LABEL}.plist
 
 # ── Sanity checks ──────────────────────────────────────────────────────────────
@@ -26,7 +38,7 @@ echo "Installing Python packages..."
 
 # ── Install LaunchAgent ────────────────────────────────────────────────────────
 echo "Setting up LaunchAgent..."
-sed -e "s|__APP_DIR__|$DIR|g" -e "s|__HOME__|$HOME|g" "$DIR/launchagent.plist.template" > "$PLIST"
+sed -e "s|__APP_DIR__|$DIR|g" -e "s|__HOME__|$HOME|g" -e "s|__LABEL__|$LABEL|g" -e "s|__NS_LABEL__|$NS_LABEL|g" "$DIR/launchagent.plist.template" > "$PLIST"
 
 # Unload any existing instance before loading the new one
 launchctl unload "$PLIST" 2>/dev/null || true

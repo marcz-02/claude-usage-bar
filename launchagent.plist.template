@@ -4,7 +4,7 @@
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>com.claudetokenring.app</string>
+  <string>__LABEL__</string>
   <key>ProgramArguments</key>
   <array>
     <string>/Library/Developer/CommandLineTools/usr/bin/python3</string>
@@ -22,8 +22,8 @@
     <string>__HOME__/Library/Application Support/Claude/Cache/Cache_Data</string>
   </array>
   <key>StandardOutPath</key>
-  <string>/tmp/claude-token-ring.log</string>
+  <string>/tmp/claude-token-ring__NS_LABEL__.log</string>
   <key>StandardErrorPath</key>
-  <string>/tmp/claude-token-ring.log</string>
+  <string>/tmp/claude-token-ring__NS_LABEL__.log</string>
 </dict>
 </plist>

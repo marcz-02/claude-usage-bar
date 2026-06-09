@@ -49,10 +49,23 @@ except Exception:
 
 from ring_renderer import render_ring
 
+# ── Namespace (supports parallel beta installs) ───────────────────────────────
+# The namespace is derived from the directory name this script lives in.
+# Production: ~/ClaudeTokenRing   → namespace ""     (no suffix)
+# Beta:       ~/ClaudeTokenRingBeta → namespace "beta" (all paths get _beta suffix)
+# Any other name: lowercased dir name is used as namespace.
+
+_INSTALL_DIR  = Path(__file__).resolve().parent
+_DIR_NAME     = _INSTALL_DIR.name                          # e.g. "ClaudeTokenRing" or "ClaudeTokenRingBeta"
+_NS           = "" if _DIR_NAME == "ClaudeTokenRing" else _DIR_NAME.replace("ClaudeTokenRing", "").lower().strip("_-") or _DIR_NAME.lower()
+_NS_SUFFIX    = f"_{_NS}" if _NS else ""                   # e.g. "" or "_beta"
+_NS_LABEL     = f"-{_NS}" if _NS else ""                   # e.g. "" or "-beta"
+IS_BETA       = bool(_NS)
+
 # ── Config ────────────────────────────────────────────────────────────────────
 
 DEFAULT_LIMIT    = 197_000
-CONFIG_PATH      = Path.home() / ".claude_token_ring_config.json"
+CONFIG_PATH      = Path.home() / f".claude_token_ring{_NS_SUFFIX}_config.json"
 BUDDY_TOKENS     = Path.home() / "Library" / "Application Support" / "Claude" / "buddy-tokens.json"
 CHROME_CACHE_DIR = Path.home() / "Library" / "Application Support" / "Claude" / "Cache" / "Cache_Data"
 COOKIES_DB       = Path.home() / "Library" / "Application Support" / "Claude" / "Cookies"
@@ -64,14 +77,14 @@ API_WINDOW_SEC   = 5 * 60         # skip API if cache > 5 min old (fully idle)
 KEYCHAIN_SERVICE = "Claude Safe Storage"
 KEYCHAIN_ACCOUNT = "Claude Key"
 
-USAGE_LOG        = Path.home() / ".claude_token_ring_usage_log.jsonl"
+USAGE_LOG        = Path.home() / f".claude_token_ring{_NS_SUFFIX}_usage_log.jsonl"
 RATE_WINDOW_SEC  = 30 * 60        # consumption rate computed over the last 30 min
 RATE_LOG_MAX     = 17280          # ~6 months of history at 30s ticks (≈ 1.4 MB)
 RATE_RESET_DROP  = 15.0           # a utilization drop > this % marks a 5h reset
 RATE_MIN_SPAN    = 180            # need >= 3 min of samples for a meaningful rate
-SESSION_STATE    = Path.home() / ".claude_token_ring_session.json"
+SESSION_STATE    = Path.home() / f".claude_token_ring{_NS_SUFFIX}_session.json"
 CODE_PROJECTS    = Path.home() / ".claude" / "projects"
-ICON_DIR         = Path("/tmp/claude_ring_icons")
+ICON_DIR         = Path(f"/tmp/claude_ring_icons{_NS_SUFFIX}")
 UPDATE_INTERVAL  = 30
 WINDOW_SEC       = 5 * 3600
 MIDNIGHT_DROP    = 1000   # threshold for detecting tokens-today midnight reset
@@ -237,7 +250,7 @@ def _acquire_single_instance() -> bool:
     """Return True if this is the only running instance (exclusive fcntl lock)."""
     global _LOCK_FD
     try:
-        _LOCK_FD = open("/tmp/claude-token-ring.lock", "w")
+        _LOCK_FD = open(f"/tmp/claude-token-ring{_NS_LABEL}.lock", "w")
         fcntl.flock(_LOCK_FD, fcntl.LOCK_EX | fcntl.LOCK_NB)
         return True
     except OSError:
@@ -266,7 +279,7 @@ def _get_org_uuid():
     return None
 
 
-_KEY_CACHE_PATH = Path.home() / ".claude_token_ring_ssk"
+_KEY_CACHE_PATH = Path.home() / f".claude_token_ring{_NS_SUFFIX}_ssk"
 
 def _get_safe_storage_key():
     """Derive AES key from macOS Keychain password.
@@ -1007,7 +1020,8 @@ class ClaudeRingApp(rumps.App):
         self.template = True
         # Fixed-width title (always 5 chars) so the status item width stays
         # constant — otherwise the menu shifts under the user's cursor.
-        self.title    = f" {int(round(pct * 100)):3d}%" if self._show_pct else ""
+        _beta_tag     = " β" if IS_BETA else ""
+        self.title    = f" {int(round(pct * 100)):3d}%{_beta_tag}" if self._show_pct else (_beta_tag.strip() if IS_BETA else "")
 
         def _reset_label(ts):
             if ts is None:
