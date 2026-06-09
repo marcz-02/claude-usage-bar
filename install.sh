@@ -4,7 +4,6 @@
 
 set -e
 
-PYTHON=/Library/Developer/CommandLineTools/usr/bin/python3
 DIR="$(cd "$(dirname "$0")" && pwd)"
 DIRNAME="$(basename "$DIR")"
 
@@ -21,12 +20,31 @@ NS_LABEL="${NS:+-$NS}"   # "" or "-beta"
 LABEL="com.marcz.claude-token-ring${NS_LABEL}"
 PLIST=~/Library/LaunchAgents/${LABEL}.plist
 
-# ── Sanity checks ──────────────────────────────────────────────────────────────
-if ! command -v "$PYTHON" &>/dev/null; then
-  echo "Error: Python 3.9 not found at $PYTHON"
+# ── Detect Python ──────────────────────────────────────────────────────────────
+# Try candidates in order — first one that exists and is Python 3.9+ wins.
+# Using the correct binary is critical: macOS Keychain "Always Allow" is tied
+# to the exact executable path. A mismatch causes repeated Keychain prompts.
+PYTHON=""
+for candidate in \
+    /Library/Developer/CommandLineTools/usr/bin/python3 \
+    /usr/bin/python3 \
+    /opt/homebrew/bin/python3 \
+    /opt/local/bin/python3 \
+    "$(command -v python3 2>/dev/null)"; do
+  [ -z "$candidate" ] && continue
+  if "$candidate" -c "import sys; exit(0 if sys.version_info >= (3,9) else 1)" 2>/dev/null; then
+    PYTHON="$candidate"
+    break
+  fi
+done
+
+if [ -z "$PYTHON" ]; then
+  echo "Error: Python 3.9+ not found."
   echo "Install Xcode Command Line Tools:  xcode-select --install"
   exit 1
 fi
+
+echo "Using Python: $PYTHON ($("$PYTHON" --version 2>&1))"
 
 if [ ! -d ~/Library/LaunchAgents ]; then
   mkdir -p ~/Library/LaunchAgents
@@ -38,7 +56,7 @@ echo "Installing Python packages..."
 
 # ── Install LaunchAgent ────────────────────────────────────────────────────────
 echo "Setting up LaunchAgent..."
-sed -e "s|__APP_DIR__|$DIR|g" -e "s|__HOME__|$HOME|g" -e "s|__LABEL__|$LABEL|g" -e "s|__NS_LABEL__|$NS_LABEL|g" "$DIR/launchagent.plist.template" > "$PLIST"
+sed -e "s|__APP_DIR__|$DIR|g" -e "s|__HOME__|$HOME|g" -e "s|__LABEL__|$LABEL|g" -e "s|__NS_LABEL__|$NS_LABEL|g" -e "s|__PYTHON__|$PYTHON|g" "$DIR/launchagent.plist.template" > "$PLIST"
 
 # Unload any existing instance before loading the new one
 launchctl unload "$PLIST" 2>/dev/null || true

@@ -7,7 +7,7 @@
   <string>__LABEL__</string>
   <key>ProgramArguments</key>
   <array>
-    <string>/Library/Developer/CommandLineTools/usr/bin/python3</string>
+    <string>__PYTHON__</string>
     <string>__APP_DIR__/claude_token_ring.py</string>
   </array>
   <key>RunAtLoad</key>
