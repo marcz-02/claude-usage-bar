@@ -1021,7 +1021,10 @@ class ClaudeRingApp(rumps.App):
             sd_resets = live.get("sd_resets_at_ts")
             age       = int(time.time() - live['cache_mtime'])
             tag       = "API" if live.get("source") == "api" else "Cache"
-            source    = f"live ({tag}, {age}s ago)"
+            if age > API_WINDOW_SEC:
+                source = "⏸ Standby"
+            else:
+                source = f"live ({tag}, {age}s ago)"
         else:
             usage     = _session_usage(state, tokens_now)
             pct       = min(1.0, usage / limit) if limit > 0 else 0.0
